@@ -1,0 +1,82 @@
+/* style.css */
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #f0f0f0;
+  color: #333;
+}
+
+#app {
+  max-width: 500px;
+  margin: auto;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  margin-top: 40px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="file"],
+label,
+button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="file"] {
+  padding: 10px;ss
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  background-color: #2d89ef;
+  color: white;
+  border: none;
+  padding: 12px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: background-color 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: #1b5fc7;
+}
+
+h2 {
+  color: #2d89ef;
+}
+
+#bidang-group input[type="radio"] {
+  margin-right: 8px;
+}
+
+canvas {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+@media (max-width: 600px) {
+  #app {
+    margin: 10px;
+    padding: 15px;
+  }
+
+  button {
+    padding: 10px;
+  }
+
+  input, label {
+    font-size: 14px;
+  }
+}
