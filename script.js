@@ -7,6 +7,8 @@ const namaPegawaiOptions = [ // Array untuk nama pegawai
 ];
 let usernameGlobal = "";
 let base64ImageGlobal = ""; // hasil foto yg sudah ditempel teks
+let globalLatitude = null; // Tambahkan variabel global untuk latitude
+let globalLongitude = null; // Tambahkan variabel global untuk longitude
 
 window.onload = () => {
   renderBidangOptions();
@@ -61,7 +63,7 @@ async function login() {
 function showForm() {
   document.getElementById("login-screen").style.display = "none";
   document.getElementById("form-screen").style.display = "block";
-  document.getElementById("time-display").textContent = `Waktu sekarang: ${new Date().toLocaleString()}`;
+  document.getElementById("time-display").textContent = `Waktu sekarang: ${new Date().toLocaleString('id-ID', { hour12: false })}`; // Format waktu 24 jam
 }
 
 function ambilFoto() {
@@ -84,31 +86,57 @@ document.getElementById("input-foto").addEventListener("change", function () {
         
         ctx.drawImage(img, 0, 0);
 
+        // Simpan koordinat global
+        globalLatitude = pos.coords.latitude;
+        globalLongitude = pos.coords.longitude;
+
         // Tentukan sisi terpendek (lebar atau tinggi) dari gambar
         const minSide = Math.min(img.width, img.height);
-        // Hitung ukuran font berdasarkan 5% dari sisi terpendek
-        const fontSize = Math.floor(minSide * 0.05);
+        // Hitung ukuran font berdasarkan 3% dari sisi terpendek untuk watermark
+        const fontSize = Math.floor(minSide * 0.03); // Sedikit lebih kecil agar muat
         ctx.font = `${fontSize}px Arial`;
-        ctx.fillStyle = "white";
-        ctx.shadowColor = "black"; // Tambahkan bayangan untuk keterbacaan
-        ctx.shadowBlur = 5; // Efek blur bayangan
-
-        const lokasi = `Lokasi: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
-        const waktu = `Waktu: ${new Date().toLocaleString()}`;
+        
         const namaPegawaiTerpilih = document.getElementById("nama-pegawai").value; // Ambil nama pegawai
-        const namaPegawaiText = `Nama Pegawai: ${namaPegawaiTerpilih}`; // Teks nama pegawai
+        const namaPegawaiText = `@${namaPegawaiTerpilih}`; // Format "@nama1"
+        const lokasiText = `Lokasi: ${globalLatitude.toFixed(5)}, ${globalLongitude.toFixed(5)}`;
+        const waktuText = `Waktu: ${new Date().toLocaleString('id-ID', { hour12: false })}`; // Format waktu 24 jam
 
-        // Sesuaikan posisi teks
-        ctx.fillText(namaPegawaiText, 10, fontSize + 5); // Tampilkan nama pegawai
-        ctx.fillText(lokasi, 10, (fontSize * 2) + 10);
-        ctx.fillText(waktu, 10, (fontSize * 3) + 15);
+        // Hitung lebar teks untuk background overlay
+        const textMeasurements = [
+            ctx.measureText(namaPegawaiText).width,
+            ctx.measureText(lokasiText).width,
+            ctx.measureText(waktuText).width
+        ];
+        const maxWidth = Math.max(...textMeasurements);
+        const textHeight = fontSize * 1.5; // Perkirakan tinggi baris teks
+
+        const padding = fontSize * 0.3; // Padding untuk background
+        const totalHeight = (textHeight * 3) + (padding * 2); // Tinggi total area teks
+
+        const startX = padding;
+        const startY = canvas.height - totalHeight; // Mulai dari bawah
+
+        // Gambar background hitam overlay
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)"; // Hitam dengan sedikit transparansi
+        ctx.fillRect(0, startY - padding, maxWidth + (padding * 2), totalHeight + (padding * 2)); // Menutupi area teks
+
+        ctx.fillStyle = "white"; // Warna teks putih
+        ctx.shadowColor = "transparent"; // Hapus bayangan agar tidak double efek dengan overlay
+        ctx.shadowBlur = 0; 
+
+        // Sesuaikan posisi teks di kiri bawah
+        ctx.fillText(namaPegawaiText, startX, startY + fontSize);
+        ctx.fillText(lokasiText, startX, startY + (fontSize * 2) + padding);
+        ctx.fillText(waktuText, startX, startY + (fontSize * 3) + (padding * 2));
 
         // simpan base64 yang sudah di-render ke canvas
         base64ImageGlobal = canvas.toDataURL("image/jpeg");
         document.getElementById("reset-foto-button").style.display = "block"; // Tampilkan tombol reset
       }, err => {
-        alert("Gagal mendapatkan lokasi.");
+        alert("Gagal mendapatkan lokasi. Pastikan izin lokasi diberikan.");
         document.getElementById("reset-foto-button").style.display = "none"; // Sembunyikan tombol reset jika gagal
+        globalLatitude = null; // Reset global lat/long
+        globalLongitude = null;
       });
     };
     img.src = e.target.result;
@@ -123,6 +151,8 @@ function resetFoto() { // Fungsi untuk mereset foto
   base64ImageGlobal = ""; // Kosongkan base64 gambar
   document.getElementById("input-foto").value = ""; // Hapus file yang dipilih di input
   document.getElementById("reset-foto-button").style.display = "none"; // Sembunyikan tombol reset
+  globalLatitude = null; // Reset global lat/long
+  globalLongitude = null;
 }
 
 async function submitForm() {
@@ -130,7 +160,7 @@ async function submitForm() {
   const kegiatan = document.getElementById("kegiatan").value;
   const bidangRadio = document.querySelector("input[name='bidang']:checked");
   
-  if (!namaPegawai) return alert("Pilih nama pegawai!"); // Validasi nama pegawai
+  if (!namaPegawai) return alert("Pilih nama pegawai!");
   if (!bidangRadio) return alert("Pilih bidang pekerjaan!");
 
   const bidang = bidangRadio.value === "LAINNYA"
@@ -141,11 +171,19 @@ async function submitForm() {
     alert("Ambil foto dulu sebelum submit.");
     return;
   }
+  if (globalLatitude === null || globalLongitude === null) {
+      alert("Lokasi belum didapatkan. Pastikan izin lokasi diberikan dan coba ambil foto lagi.");
+      return;
+  }
 
   document.getElementById("loading-overlay").style.display = "flex"; // Tampilkan loading overlay
 
-  const waktu = new Date().toLocaleString();
-  const filename = `${usernameGlobal}_${Date.now()}.jpg`;
+  const now = new Date();
+  // Format waktu untuk nama file dan spreadsheet
+  const formattedTime = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+  
+  const filename = `${formattedTime}_${namaPegawai}.jpg`; // Nama file baru
+  const lokasiKoordinat = `(${globalLatitude.toFixed(5)}, ${globalLongitude.toFixed(5)})`; // Format lokasi baru
 
   try {
     const upload = await fetch("https://script.google.com/macros/s/AKfycbyiMChjTq54ovT7ID7lMZUHp_dOCBDl7DAwGWfF8h_UoT50qwwi20woon1ZU41HGMWotA/exec", {
@@ -153,12 +191,13 @@ async function submitForm() {
       body: JSON.stringify({
         mode: "upload",
         user: usernameGlobal,
-        namaPegawai: namaPegawai, // Kirim nama pegawai
+        namaPegawai: namaPegawai,
         kegiatan,
         bidang,
-        waktu,
-        filename,
-        foto: base64ImageGlobal
+        waktu: now.toLocaleString('id-ID', { hour12: false }), // Menggunakan waktu lokal saat ini untuk kolom waktu
+        filename: filename, // Kirim nama file yang sudah diformat
+        foto: base64ImageGlobal,
+        lokasi: lokasiKoordinat // Kirim lokasi dengan format baru
       }),
     });
 
@@ -170,7 +209,6 @@ async function submitForm() {
       // Reset form setelah berhasil submit (opsional)
       document.getElementById("kegiatan").value = "";
       document.getElementById("bidang-lain").value = "";
-      // Loop melalui radio button dan atur checked ke false
       const radioButtons = document.querySelectorAll("input[name='bidang']");
       radioButtons.forEach(radio => {
         radio.checked = false;
