@@ -68,118 +68,47 @@ function ambilFoto() {
   document.getElementById("input-foto").click();
 }
 
-// ---- Fungsi untuk menggambar watermark teks ----
-function drawTextWatermark(canvas, ctx, lines, startX, bottomPadding, fontSize, boxPadding) {
-    let currentY = canvas.height - bottomPadding;
-    // Calculate line height including vertical box padding and extra spacing between lines
-    const lineHeight = fontSize + (2 * boxPadding) + 5; // 5px extra space between lines
-
-    ctx.font = `${fontSize}px Arial`;
-    ctx.shadowColor = "black";
-    ctx.shadowBlur = 5;
-    ctx.textBaseline = 'bottom'; // Ensure Y coordinate is the bottom of the text
-
-    // Iterate lines in reverse to draw from bottom up
-    for (let i = lines.length - 1; i >= 0; i--) {
-        const lineText = lines[i];
-        const textWidth = ctx.measureText(lineText).width;
-        
-        // Background rectangle for text
-        ctx.fillStyle = "rgba(0, 0, 0, 0.6)"; // Black with 60% opacity
-        // rectX, rectY, rectWidth, rectHeight
-        ctx.fillRect(startX - boxPadding, currentY - fontSize - boxPadding,
-                     textWidth + (2 * boxPadding), fontSize + (2 * boxPadding));
-
-        // Text itself
-        ctx.fillStyle = "white";
-        ctx.fillText(lineText, startX, currentY);
-
-        currentY -= lineHeight; // Move up for next line
-    }
-}
-
-// ---- Fungsi untuk memfinalisasi hasil gambar canvas ----
-function finalizeCanvasDrawing(canvas) {
-    base64ImageGlobal = canvas.toDataURL("image/jpeg");
-    console.log("finalizeCanvasDrawing: base64ImageGlobal set, length:", base64ImageGlobal.length); // Debugging log
-    document.getElementById("reset-foto-button").style.display = "block";
-}
-
-
-// ---- Fungsi untuk menggambar watermark utama dan minimap ----
-function drawWatermarkAndMinimap(canvas, ctx, img, pos, namaPegawaiTerpilih) {
-    // Atur ukuran canvas sesuai dengan gambar
-    canvas.width = img.width;
-    canvas.height = img.height;
-    
-    ctx.drawImage(img, 0, 0); // Gambar foto utama
-
-    const minSide = Math.min(img.width, img.height); // Sisi terpendek
-    const fontSize = Math.floor(minSide * 0.05); // 5% dari sisi terpendek
-    
-    // Data untuk baris teks watermark
-    const lines = [
-        `Nama Pegawai: ${namaPegawaiTerpilih}`,
-        pos ? `Lokasi: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}` : 'Lokasi: Tidak tersedia',
-        `Waktu: ${new Date().toLocaleString()}`
-    ];
-
-    const bottomPadding = 15; // Jarak dari bawah canvas
-    const textMarginFromLeft = 10; // Jarak teks dari tepi kiri atau dari minimap
-    const boxPadding = 5; // Padding di sekitar teks di dalam background
-
-    let mapSize = 0;
-    let textBlockStartX = textMarginFromLeft; // Posisi awal teks (default tanpa map)
-
-    if (pos && pos.coords.latitude && pos.coords.longitude) { // Hanya coba gambar map jika geolocation tersedia
-        mapSize = Math.floor(minSide * 0.15); // 15% dari sisi terpendek untuk minimap
-        const mapX = textMarginFromLeft;
-        const mapY = canvas.height - mapSize - bottomPadding;
-
-        textBlockStartX = mapX + mapSize + textMarginFromLeft; // Geser teks ke kanan setelah map
-
-        const mapImage = new Image();
-        // API Key LocationIQ Anda
-        const locationIqApiKey = "pk.ba1138b8c2be50e65f13934cf920a36f"; 
-        mapImage.src = `https://maps.locationiq.com/v3/staticmap?key=${locationIqApiKey}&center=${pos.coords.latitude},${pos.coords.longitude}&zoom=16&size=${mapSize}x${mapSize}&markers=icon:small-red-circle|${pos.coords.latitude},${pos.coords.longitude}`;
-        
-        mapImage.onload = () => {
-            ctx.drawImage(mapImage, mapX, mapY, mapSize, mapSize); // Gambar minimap
-            drawTextWatermark(canvas, ctx, lines, textBlockStartX, bottomPadding, fontSize, boxPadding);
-            finalizeCanvasDrawing(canvas); // Finalisasi setelah map dan teks tergambar
-        };
-
-        mapImage.onerror = () => {
-            console.error("Failed to load minimap image. Drawing watermark without map.");
-            // Gambar watermark teks dari tepi kiri tanpa minimap
-            drawTextWatermark(canvas, ctx, lines, textMarginFromLeft, bottomPadding, fontSize, boxPadding); 
-            finalizeCanvasDrawing(canvas); // Finalisasi meskipun map gagal
-        };
-    } else {
-        // Jika geolocation tidak tersedia, gambar watermark teks dari tepi kiri tanpa minimap
-        drawTextWatermark(canvas, ctx, lines, textMarginFromLeft, bottomPadding, fontSize, boxPadding);
-        finalizeCanvasDrawing(canvas); // Finalisasi langsung
-    }
-}
-
-
 document.getElementById("input-foto").addEventListener("change", function () {
   const file = this.files[0];
   const reader = new FileReader();
   reader.onload = function (e) {
     const img = new Image();
     img.onload = function () {
+      navigator.geolocation.getCurrentPosition(pos => {
         const canvas = document.getElementById("canvas-foto");
         const ctx = canvas.getContext("2d");
-        const namaPegawaiTerpilih = document.getElementById("nama-pegawai").value;
+        
+        // Atur ukuran canvas sesuai dengan gambar
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        ctx.drawImage(img, 0, 0);
 
-      navigator.geolocation.getCurrentPosition(pos => {
-          // Panggil fungsi utama untuk menggambar watermark dan minimap
-          drawWatermarkAndMinimap(canvas, ctx, img, pos, namaPegawaiTerpilih);
+        // Tentukan sisi terpendek (lebar atau tinggi) dari gambar
+        const minSide = Math.min(img.width, img.height);
+        // Hitung ukuran font berdasarkan 5% dari sisi terpendek
+        const fontSize = Math.floor(minSide * 0.05);
+        ctx.font = `${fontSize}px Arial`;
+        ctx.fillStyle = "white";
+        ctx.shadowColor = "black"; // Tambahkan bayangan untuk keterbacaan
+        ctx.shadowBlur = 5; // Efek blur bayangan
+
+        const lokasi = `Lokasi: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+        const waktu = `Waktu: ${new Date().toLocaleString()}`;
+        const namaPegawaiTerpilih = document.getElementById("nama-pegawai").value; // Ambil nama pegawai
+        const namaPegawaiText = `Nama Pegawai: ${namaPegawaiTerpilih}`; // Teks nama pegawai
+
+        // Sesuaikan posisi teks
+        ctx.fillText(namaPegawaiText, 10, fontSize + 5); // Tampilkan nama pegawai
+        ctx.fillText(lokasi, 10, (fontSize * 2) + 10);
+        ctx.fillText(waktu, 10, (fontSize * 3) + 15);
+
+        // simpan base64 yang sudah di-render ke canvas
+        base64ImageGlobal = canvas.toDataURL("image/jpeg");
+        document.getElementById("reset-foto-button").style.display = "block"; // Tampilkan tombol reset
       }, err => {
-        alert("Gagal mendapatkan lokasi. Watermark akan ditampilkan tanpa informasi lokasi.");
-        // Panggil fungsi utama dengan pos null jika geolocation gagal
-        drawWatermarkAndMinimap(canvas, ctx, img, null, namaPegawaiTerpilih); 
+        alert("Gagal mendapatkan lokasi.");
+        document.getElementById("reset-foto-button").style.display = "none"; // Sembunyikan tombol reset jika gagal
       });
     };
     img.src = e.target.result;
@@ -201,9 +130,6 @@ async function submitForm() {
   const kegiatan = document.getElementById("kegiatan").value;
   const bidangRadio = document.querySelector("input[name='bidang']:checked");
   
-  // Debugging log untuk melihat nilai base64ImageGlobal saat submit
-  console.log("submitForm called, base64ImageGlobal length:", base64ImageGlobal.length);
-
   if (!namaPegawai) return alert("Pilih nama pegawai!"); // Validasi nama pegawai
   if (!bidangRadio) return alert("Pilih bidang pekerjaan!");
 
