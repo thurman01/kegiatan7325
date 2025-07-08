@@ -93,7 +93,7 @@ document.getElementById("input-foto").addEventListener("change", function () {
         // Tentukan sisi terpendek (lebar atau tinggi) dari gambar
         const minSide = Math.min(img.width, img.height);
         // Hitung ukuran font berdasarkan 3% dari sisi terpendek untuk watermark
-        const fontSize = Math.floor(minSide * 0.03); // Sedikit lebih kecil agar muat
+        const fontSize = Math.floor(minSide * 0.05); // Sedikit lebih kecil agar muat
         ctx.font = `${fontSize}px Arial`;
         
         const namaPegawaiTerpilih = document.getElementById("nama-pegawai").value; // Ambil nama pegawai
