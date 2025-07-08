@@ -21,7 +21,8 @@ input[type="text"],
 input[type="password"],
 input[type="file"],
 label,
-button {
+button,
+select { /* Tambahkan 'select' di sini */
   display: block;
   width: 100%;
   margin: 10px 0;
@@ -30,8 +31,9 @@ button {
 
 input[type="text"],
 input[type="password"],
-input[type="file"] {
-  padding: 10px;ss
+input[type="file"],
+select { /* Tambahkan 'select' di sini */
+  padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
 }
@@ -76,7 +78,38 @@ canvas {
     padding: 10px;
   }
 
-  input, label {
+  input, label, select { /* Tambahkan 'select' di sini */
     font-size: 14px;
   }
+}
+
+/* Loading Overlay */
+#loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  z-index: 1000;
+}
+
+.spinner {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #2d89ef;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 2s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
