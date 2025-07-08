@@ -1,10 +1,16 @@
 const bidangOptions = ["UMUM", "IPDS", "SOSIAL", "DISTRIBUSI", "NERACA", "PRODUKSI", "LAINNYA"];
+const namaPegawaiOptions = [ // Array untuk nama pegawai
+  "nama1", "nama2", "nama3", "nama4", "nama5", "nama6", "nama7", "nama8", "nama9", "nama10",
+  "nama11", "nama12", "nama13", "nama14", "nama15", "nama16", "nama17", "nama18", "nama19", "nama20",
+  "nama21", "nama22", "nama23", "nama24", "nama25", "nama26", "nama27", "nama28", "nama29", "nama30",
+  "nama31", "nama32", "nama33", "nama34", "nama35", "nama36"
+];
 let usernameGlobal = "";
 let base64ImageGlobal = ""; // hasil foto yg sudah ditempel teks
 
 window.onload = () => {
   renderBidangOptions();
-  renderNamaPegawaiOptions();
+  renderNamaPegawaiOptions(); // Panggil fungsi untuk mengisi dropdown nama pegawai
   if (localStorage.getItem("stayLogin") === "true") {
     usernameGlobal = localStorage.getItem("username");
     showForm();
@@ -25,14 +31,14 @@ function renderBidangOptions() {
   });
 }
 
-function renderNamaPegawaiOptions() {
+function renderNamaPegawaiOptions() { // Fungsi baru untuk mengisi dropdown nama pegawai
   const select = document.getElementById("nama-pegawai");
-  for (let i = 1; i <= 36; i++) {
+  namaPegawaiOptions.forEach(name => {
     const option = document.createElement("option");
-    option.value = `nama${i}`;
-    option.textContent = `nama${i}`;
+    option.value = name;
+    option.textContent = name;
     select.appendChild(option);
-  }
+  });
 }
 
 async function login() {
@@ -71,23 +77,36 @@ document.getElementById("input-foto").addEventListener("change", function () {
       navigator.geolocation.getCurrentPosition(pos => {
         const canvas = document.getElementById("canvas-foto");
         const ctx = canvas.getContext("2d");
+        
+        // Atur ukuran canvas sesuai dengan gambar
         canvas.width = img.width;
         canvas.height = img.height;
+        
         ctx.drawImage(img, 0, 0);
 
-        const fontSize = Math.floor(img.width * 0.05);
+        // Hitung ukuran font berdasarkan lebar gambar (5% dari lebar gambar)
+        const fontSize = Math.floor(img.width * 0.05); 
         ctx.font = `${fontSize}px Arial`;
         ctx.fillStyle = "white";
+        ctx.shadowColor = "black"; // Tambahkan bayangan untuk keterbacaan
+        ctx.shadowBlur = 5; // Efek blur bayangan
 
-        const lokasi = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
-        const waktu = new Date().toLocaleString();
+        const lokasi = `Lokasi: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+        const waktu = `Waktu: ${new Date().toLocaleString()}`;
+        const namaPegawaiTerpilih = document.getElementById("nama-pegawai").value; // Ambil nama pegawai
+        const namaPegawaiText = `Nama Pegawai: ${namaPegawaiTerpilih}`; // Teks nama pegawai
 
-        ctx.fillText(`Lokasi: ${lokasi}`, 10, 30);
-        ctx.fillText(`Waktu: ${waktu}`, 10, 30 + fontSize + 10);
+        // Sesuaikan posisi teks
+        ctx.fillText(namaPegawaiText, 10, fontSize + 5); // Tampilkan nama pegawai
+        ctx.fillText(lokasi, 10, (fontSize * 2) + 10);
+        ctx.fillText(waktu, 10, (fontSize * 3) + 15);
 
+        // simpan base64 yang sudah di-render ke canvas
         base64ImageGlobal = canvas.toDataURL("image/jpeg");
+        document.getElementById("reset-foto-button").style.display = "block"; // Tampilkan tombol reset
       }, err => {
         alert("Gagal mendapatkan lokasi.");
+        document.getElementById("reset-foto-button").style.display = "none"; // Sembunyikan tombol reset jika gagal
       });
     };
     img.src = e.target.result;
@@ -95,32 +114,36 @@ document.getElementById("input-foto").addEventListener("change", function () {
   reader.readAsDataURL(file);
 });
 
-function resetFoto() {
-  base64ImageGlobal = "";
+function resetFoto() { // Fungsi untuk mereset foto
   const canvas = document.getElementById("canvas-foto");
   const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  document.getElementById("input-foto").value = "";
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // Bersihkan canvas
+  base64ImageGlobal = ""; // Kosongkan base64 gambar
+  document.getElementById("input-foto").value = ""; // Hapus file yang dipilih di input
+  document.getElementById("reset-foto-button").style.display = "none"; // Sembunyikan tombol reset
 }
 
 async function submitForm() {
+  const namaPegawai = document.getElementById("nama-pegawai").value; // Ambil nilai nama pegawai
   const kegiatan = document.getElementById("kegiatan").value;
-  const nama = document.getElementById("nama-pegawai").value;
   const bidangRadio = document.querySelector("input[name='bidang']:checked");
-  const loadingPopup = document.getElementById("loading-popup");
-
-  if (!nama) return alert("Pilih nama pegawai!");
+  
+  if (!namaPegawai) return alert("Pilih nama pegawai!"); // Validasi nama pegawai
   if (!bidangRadio) return alert("Pilih bidang pekerjaan!");
-  if (!base64ImageGlobal) return alert("Ambil foto dulu sebelum submit.");
 
   const bidang = bidangRadio.value === "LAINNYA"
     ? document.getElementById("bidang-lain").value
     : bidangRadio.value;
 
+  if (!base64ImageGlobal) {
+    alert("Ambil foto dulu sebelum submit.");
+    return;
+  }
+
+  document.getElementById("loading-overlay").style.display = "flex"; // Tampilkan loading overlay
+
   const waktu = new Date().toLocaleString();
   const filename = `${usernameGlobal}_${Date.now()}.jpg`;
-
-  loadingPopup.style.display = "block";
 
   try {
     const upload = await fetch("https://script.google.com/macros/s/AKfycbyiMChjTq54ovT7ID7lMZUHp_dOCBDl7DAwGWfF8h_UoT50qwwi20woon1ZU41HGMWotA/exec", {
@@ -128,7 +151,7 @@ async function submitForm() {
       body: JSON.stringify({
         mode: "upload",
         user: usernameGlobal,
-        nama,
+        namaPegawai: namaPegawai, // Kirim nama pegawai
         kegiatan,
         bidang,
         waktu,
@@ -138,15 +161,25 @@ async function submitForm() {
     });
 
     const hasil = await upload.json();
-    loadingPopup.style.display = "none";
+    document.getElementById("loading-overlay").style.display = "none"; // Sembunyikan loading overlay
 
     if (hasil.success) {
-      alert("✅ Data berhasil dikirim!");
+      alert("Data berhasil dikirim!");
+      // Reset form setelah berhasil submit (opsional)
+      document.getElementById("kegiatan").value = "";
+      document.getElementById("bidang-lain").value = "";
+      // Loop melalui radio button dan atur checked ke false
+      const radioButtons = document.querySelectorAll("input[name='bidang']");
+      radioButtons.forEach(radio => {
+        radio.checked = false;
+      });
+      document.getElementById("nama-pegawai").selectedIndex = 0; // Reset dropdown nama pegawai
+      resetFoto();
     } else {
-      alert("❌ Gagal mengirim data.");
+      alert("Gagal mengirim data.");
     }
-  } catch (err) {
-    loadingPopup.style.display = "none";
-    alert("❌ Terjadi kesalahan saat mengirim data.");
+  } catch (error) {
+    document.getElementById("loading-overlay").style.display = "none"; // Sembunyikan loading overlay jika ada error
+    alert("Terjadi kesalahan saat mengirim data: " + error.message);
   }
 }
