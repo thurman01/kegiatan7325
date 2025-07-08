@@ -7,8 +7,9 @@ const namaPegawaiOptions = [ // Array untuk nama pegawai
 ];
 let usernameGlobal = "";
 let base64ImageGlobal = ""; // hasil foto yg sudah ditempel teks
-let globalLatitude = null; // Tambahkan variabel global untuk latitude
-let globalLongitude = null; // Tambahkan variabel global untuk longitude
+let globalLatitude = null; // Variabel global untuk latitude
+let globalLongitude = null; // Variabel global untuk longitude
+let takenPhotoTime = null; // Variabel global untuk menyimpan waktu foto diambil (objek Date)
 
 window.onload = () => {
   renderBidangOptions();
@@ -46,6 +47,7 @@ function renderNamaPegawaiOptions() { // Fungsi baru untuk mengisi dropdown nama
 async function login() {
   const user = document.getElementById("username").value;
   const pass = document.getElementById("password").value;
+  // Pastikan URL di bawah ini adalah URL exec dari Google Apps Script Anda
   const res = await fetch(`https://script.google.com/macros/s/AKfycbyiMChjTq54ovT7ID7lMZUHp_dOCBDl7DAwGWfF8h_UoT50qwwi20woon1ZU41HGMWotA/exec?mode=login&user=${user}&pass=${pass}`);
   const result = await res.json();
   if (result.success) {
@@ -63,7 +65,8 @@ async function login() {
 function showForm() {
   document.getElementById("login-screen").style.display = "none";
   document.getElementById("form-screen").style.display = "block";
-  document.getElementById("time-display").textContent = `Waktu sekarang: ${new Date().toLocaleString('id-ID', { hour12: false })}`; // Format waktu 24 jam
+  // Tampilkan waktu sekarang saat pertama kali masuk form, sebelum foto diambil
+  document.getElementById("time-display").textContent = `Waktu sekarang: ${new Date().toLocaleString('id-ID', { hour12: false })}`;
 }
 
 function ambilFoto() {
@@ -90,28 +93,36 @@ document.getElementById("input-foto").addEventListener("change", function () {
         globalLatitude = pos.coords.latitude;
         globalLongitude = pos.coords.longitude;
 
+        // Ambil waktu saat foto diambil dan simpan ke variabel global
+        takenPhotoTime = new Date();
+        const formattedTakenTime = takenPhotoTime.toLocaleString('id-ID', { hour12: false });
+
         // Tentukan sisi terpendek (lebar atau tinggi) dari gambar
         const minSide = Math.min(img.width, img.height);
         // Hitung ukuran font berdasarkan 3% dari sisi terpendek untuk watermark
-        const fontSize = Math.floor(minSide * 0.05); // Sedikit lebih kecil agar muat
+        const fontSize = Math.floor(minSide * 0.03); // Sedikit lebih kecil agar muat
         ctx.font = `${fontSize}px Arial`;
         
-        const namaPegawaiTerpilih = document.getElementById("nama-pegawai").value; // Ambil nama pegawai
-        const namaPegawaiText = `@${namaPegawaiTerpilih}`; // Format "@nama1"
-        const lokasiText = `Lokasi: ${globalLatitude.toFixed(5)}, ${globalLongitude.toFixed(5)}`;
-        const waktuText = `Waktu: ${new Date().toLocaleString('id-ID', { hour12: false })}`; // Format waktu 24 jam
+        const namaPegawaiTerpilih = document.getElementById("nama-pegawai").value;
+        const namaPegawaiText = `@${namaPegawaiTerpilih}`;
+        const lokasiWatermarkText = `Lokasi: ${globalLatitude.toFixed(5)}, ${globalLongitude.toFixed(5)}`;
+        const waktuWatermarkText = `Waktu: ${formattedTakenTime}`;
+
+        // Update teks di bawah form dengan waktu foto dan koordinat
+        document.getElementById("time-display").textContent = 
+          `Waktu Foto: ${formattedTakenTime}\nKoordinat: (${globalLatitude.toFixed(5)}, ${globalLongitude.toFixed(5)})`;
 
         // Hitung lebar teks untuk background overlay
         const textMeasurements = [
             ctx.measureText(namaPegawaiText).width,
-            ctx.measureText(lokasiText).width,
-            ctx.measureText(waktuText).width
+            ctx.measureText(lokasiWatermarkText).width,
+            ctx.measureText(waktuWatermarkText).width
         ];
         const maxWidth = Math.max(...textMeasurements);
-        const textHeight = fontSize * 1.5; // Perkirakan tinggi baris teks
+        const textLineHeight = fontSize * 1.5; // Perkirakan tinggi baris teks
 
         const padding = fontSize * 0.3; // Padding untuk background
-        const totalHeight = (textHeight * 3) + (padding * 2); // Tinggi total area teks
+        const totalHeight = (textLineHeight * 3) + (padding * 2); // Tinggi total area teks
 
         const startX = padding;
         const startY = canvas.height - totalHeight; // Mulai dari bawah
@@ -126,8 +137,8 @@ document.getElementById("input-foto").addEventListener("change", function () {
 
         // Sesuaikan posisi teks di kiri bawah
         ctx.fillText(namaPegawaiText, startX, startY + fontSize);
-        ctx.fillText(lokasiText, startX, startY + (fontSize * 2) + padding);
-        ctx.fillText(waktuText, startX, startY + (fontSize * 3) + (padding * 2));
+        ctx.fillText(lokasiWatermarkText, startX, startY + (fontSize * 2) + padding);
+        ctx.fillText(waktuWatermarkText, startX, startY + (fontSize * 3) + (padding * 2));
 
         // simpan base64 yang sudah di-render ke canvas
         base64ImageGlobal = canvas.toDataURL("image/jpeg");
@@ -137,6 +148,9 @@ document.getElementById("input-foto").addEventListener("change", function () {
         document.getElementById("reset-foto-button").style.display = "none"; // Sembunyikan tombol reset jika gagal
         globalLatitude = null; // Reset global lat/long
         globalLongitude = null;
+        takenPhotoTime = null; // Reset waktu foto
+        // Kembalikan teks waktu display ke default jika gagal mendapatkan lokasi
+        document.getElementById("time-display").textContent = `Waktu sekarang: ${new Date().toLocaleString('id-ID', { hour12: false })}`;
       });
     };
     img.src = e.target.result;
@@ -153,14 +167,18 @@ function resetFoto() { // Fungsi untuk mereset foto
   document.getElementById("reset-foto-button").style.display = "none"; // Sembunyikan tombol reset
   globalLatitude = null; // Reset global lat/long
   globalLongitude = null;
+  takenPhotoTime = null; // Reset waktu foto
+  // Kembalikan teks waktu display ke default
+  document.getElementById("time-display").textContent = `Waktu sekarang: ${new Date().toLocaleString('id-ID', { hour12: false })}`;
 }
 
 async function submitForm() {
-  const namaPegawai = document.getElementById("nama-pegawai").value; // Ambil nilai nama pegawai
-  const kegiatan = document.getElementById("kegiatan").value;
+  const namaPegawai = document.getElementById("nama-pegawai").value;
+  const kegiatan = document.getElementById("kegiatan").value; // Ambil nilai kegiatan
   const bidangRadio = document.querySelector("input[name='bidang']:checked");
   
   if (!namaPegawai) return alert("Pilih nama pegawai!");
+  if (!kegiatan) return alert("Isi nama kegiatan!"); // Validasi kegiatan
   if (!bidangRadio) return alert("Pilih bidang pekerjaan!");
 
   const bidang = bidangRadio.value === "LAINNYA"
@@ -171,30 +189,38 @@ async function submitForm() {
     alert("Ambil foto dulu sebelum submit.");
     return;
   }
-  if (globalLatitude === null || globalLongitude === null) {
-      alert("Lokasi belum didapatkan. Pastikan izin lokasi diberikan dan coba ambil foto lagi.");
+  // Pastikan lokasi dan waktu foto sudah didapatkan
+  if (globalLatitude === null || globalLongitude === null || takenPhotoTime === null) {
+      alert("Lokasi atau waktu foto belum didapatkan. Pastikan izin lokasi diberikan dan coba ambil foto lagi.");
       return;
   }
 
   document.getElementById("loading-overlay").style.display = "flex"; // Tampilkan loading overlay
 
-  const now = new Date();
-  // Format waktu untuk nama file dan spreadsheet
-  const formattedTime = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+  // Gunakan takenPhotoTime untuk nama file dan waktu di spreadsheet
+  const now = takenPhotoTime; // Gunakan waktu saat foto diambil
+  // Format waktu untuk nama file dan kolom waktu di spreadsheet
+  const formattedTimeForFileAndSheet = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
   
-  const filename = `${formattedTime}_${namaPegawai}.jpg`; // Nama file baru
-  const lokasiKoordinat = `(${globalLatitude.toFixed(5)}, ${globalLongitude.toFixed(5)})`; // Format lokasi baru
+  // Format nama file baru: YYYY-MM-DD HH:MM:SS_Nama Pegawai_Nama Kegiatan.jpg
+  // Ganti spasi di nama kegiatan dengan underscore untuk nama file
+  const cleanedKegiatan = kegiatan.replace(/\s+/g, '_');
+  const filename = `${formattedTimeForFileAndSheet}_${namaPegawai}_${cleanedKegiatan}.jpg`;
+  
+  // Format lokasi koordinat: (-5.14555, 119.56655)
+  const lokasiKoordinat = `(${globalLatitude.toFixed(5)}, ${globalLongitude.toFixed(5)})`;
 
   try {
+    // Pastikan URL di bawah ini adalah URL exec dari Google Apps Script Anda
     const upload = await fetch("https://script.google.com/macros/s/AKfycbyiMChjTq54ovT7ID7lMZUHp_dOCBDl7DAwGWfF8h_UoT50qwwi20woon1ZU41HGMWotA/exec", {
       method: "POST",
       body: JSON.stringify({
         mode: "upload",
         user: usernameGlobal,
         namaPegawai: namaPegawai,
-        kegiatan,
+        kegiatan: kegiatan, // Kirim kegiatan asli
         bidang,
-        waktu: now.toLocaleString('id-ID', { hour12: false }), // Menggunakan waktu lokal saat ini untuk kolom waktu
+        waktu: formattedTimeForFileAndSheet, // Kirim waktu foto untuk kolom waktu
         filename: filename, // Kirim nama file yang sudah diformat
         foto: base64ImageGlobal,
         lokasi: lokasiKoordinat // Kirim lokasi dengan format baru
@@ -206,7 +232,7 @@ async function submitForm() {
 
     if (hasil.success) {
       alert("Data berhasil dikirim!");
-      // Reset form setelah berhasil submit (opsional)
+      // Reset form setelah berhasil submit
       document.getElementById("kegiatan").value = "";
       document.getElementById("bidang-lain").value = "";
       const radioButtons = document.querySelectorAll("input[name='bidang']");
@@ -214,7 +240,7 @@ async function submitForm() {
         radio.checked = false;
       });
       document.getElementById("nama-pegawai").selectedIndex = 0; // Reset dropdown nama pegawai
-      resetFoto();
+      resetFoto(); // Panggil fungsi reset foto
     } else {
       alert("Gagal mengirim data.");
     }
