@@ -67,6 +67,12 @@ canvas {
   border: 1px solid #ddd;
   border-radius: 5px;
 }
+#time-display {
+  white-space: pre-wrap; /* Ini akan membuat \n dirender sebagai baris baru */
+  margin: 10px 0; /* Sesuaikan margin agar konsisten dengan elemen form lainnya */
+  font-size: 16px; /* Sesuaikan ukuran font jika diperlukan */
+  color: #555; /* Warna teks agak abu-abu agar tidak terlalu menonjol */
+}
 
 @media (max-width: 600px) {
   #app {
