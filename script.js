@@ -98,6 +98,14 @@ function drawTextWatermark(canvas, ctx, lines, startX, bottomPadding, fontSize, 
     }
 }
 
+// ---- Fungsi baru untuk memfinalisasi hasil gambar canvas ----
+function finalizeCanvasDrawing(canvas) {
+    base64ImageGlobal = canvas.toDataURL("image/jpeg");
+    console.log("finalizeCanvasDrawing: base64ImageGlobal set, length:", base64ImageGlobal.length); // Debugging log
+    document.getElementById("reset-foto-button").style.display = "block";
+}
+
+
 // ---- Fungsi baru untuk menggambar watermark utama dan minimap ----
 function drawWatermarkAndMinimap(canvas, ctx, img, pos, namaPegawaiTerpilih) {
     // Atur ukuran canvas sesuai dengan gambar
@@ -138,22 +146,19 @@ function drawWatermarkAndMinimap(canvas, ctx, img, pos, namaPegawaiTerpilih) {
         mapImage.onload = () => {
             ctx.drawImage(mapImage, mapX, mapY, mapSize, mapSize); // Gambar minimap
             drawTextWatermark(canvas, ctx, lines, textBlockStartX, bottomPadding, fontSize, boxPadding);
-            base64ImageGlobal = canvas.toDataURL("image/jpeg");
-            document.getElementById("reset-foto-button").style.display = "block";
+            finalizeCanvasDrawing(canvas); // Finalisasi setelah map dan teks tergambar
         };
 
         mapImage.onerror = () => {
             console.error("Failed to load minimap image. Drawing watermark without map.");
-            // Jika minimap gagal, gambar watermark teks dari tepi kiri tanpa minimap
+            // Gambar watermark teks dari tepi kiri tanpa minimap
             drawTextWatermark(canvas, ctx, lines, textMarginFromLeft, bottomPadding, fontSize, boxPadding); 
-            base64ImageGlobal = canvas.toDataURL("image/jpeg");
-            document.getElementById("reset-foto-button").style.display = "block";
+            finalizeCanvasDrawing(canvas); // Finalisasi meskipun map gagal
         };
     } else {
         // Jika geolocation tidak tersedia, gambar watermark teks dari tepi kiri tanpa minimap
         drawTextWatermark(canvas, ctx, lines, textMarginFromLeft, bottomPadding, fontSize, boxPadding);
-        base64ImageGlobal = canvas.toDataURL("image/jpeg");
-        document.getElementById("reset-foto-button").style.display = "block";
+        finalizeCanvasDrawing(canvas); // Finalisasi langsung
     }
 }
 
@@ -196,6 +201,9 @@ async function submitForm() {
   const kegiatan = document.getElementById("kegiatan").value;
   const bidangRadio = document.querySelector("input[name='bidang']:checked");
   
+  // Debugging log untuk melihat nilai base64ImageGlobal saat submit
+  console.log("submitForm called, base64ImageGlobal length:", base64ImageGlobal.length);
+
   if (!namaPegawai) return alert("Pilih nama pegawai!"); // Validasi nama pegawai
   if (!bidangRadio) return alert("Pilih bidang pekerjaan!");
 
