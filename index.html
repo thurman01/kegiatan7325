@@ -9,7 +9,6 @@
 </head>
 <body>
   <div id="app">
-    <!-- Login Form -->
     <div id="login-screen">
       <h2>Login</h2>
       <input type="text" id="username" placeholder="Username" />
@@ -18,18 +17,10 @@
       <button onclick="login()">Login</button>
     </div>
 
-    <!-- Main Form -->
     <div id="form-screen" style="display:none;">
       <h2>Form Monitoring</h2>
-      
       <label>Nama Pegawai:</label>
-      <select id="nama-pegawai" required>
-        <option value="">Pilih Nama Pegawai</option>
-        <!-- 36 nama -->
-        ${[...Array(36)].map((_, i) => `<option value="nama${i+1}">nama${i+1}</option>`).join("")}
-      </select>
-
-      <label>Nama Kegiatan:</label>
+      <select id="nama-pegawai"></select> <label>Nama Kegiatan:</label>
       <input type="text" id="kegiatan" required />
 
       <label>Bidang Pekerjaan:</label>
@@ -41,18 +32,21 @@
       <button onclick="ambilFoto()">Ambil Foto</button>
       <input type="file" accept="image/*" capture="environment" id="input-foto" style="display:none;" />
       <canvas id="canvas-foto" width="300" height="300"></canvas>
-      <button onclick="resetFoto()">Reset Foto</button>
-
-      <button onclick="submitForm()">Submit</button>
-      <div id="loading-popup" style="display:none; text-align:center;">⏳ Mengirim data...</div>
+      <button onclick="resetFoto()" id="reset-foto-button" style="display:none;">Reset Foto</button> <button onclick="submitForm()">Submit</button>
     </div>
   </div>
 
+  <div id="loading-overlay" style="display:none;">
+    <div class="spinner"></div>
+    <p>Mengirim data...</p>
+  </div>
+
   <script src="script.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js');
-    }
-  </script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js');
+  }
+</script>
 </body>
 </html>
