@@ -68,7 +68,7 @@ function ambilFoto() {
   document.getElementById("input-foto").click();
 }
 
-// ---- Fungsi baru untuk menggambar watermark teks ----
+// ---- Fungsi untuk menggambar watermark teks ----
 function drawTextWatermark(canvas, ctx, lines, startX, bottomPadding, fontSize, boxPadding) {
     let currentY = canvas.height - bottomPadding;
     // Calculate line height including vertical box padding and extra spacing between lines
@@ -98,7 +98,7 @@ function drawTextWatermark(canvas, ctx, lines, startX, bottomPadding, fontSize, 
     }
 }
 
-// ---- Fungsi baru untuk memfinalisasi hasil gambar canvas ----
+// ---- Fungsi untuk memfinalisasi hasil gambar canvas ----
 function finalizeCanvasDrawing(canvas) {
     base64ImageGlobal = canvas.toDataURL("image/jpeg");
     console.log("finalizeCanvasDrawing: base64ImageGlobal set, length:", base64ImageGlobal.length); // Debugging log
@@ -106,7 +106,7 @@ function finalizeCanvasDrawing(canvas) {
 }
 
 
-// ---- Fungsi baru untuk menggambar watermark utama dan minimap ----
+// ---- Fungsi untuk menggambar watermark utama dan minimap ----
 function drawWatermarkAndMinimap(canvas, ctx, img, pos, namaPegawaiTerpilih) {
     // Atur ukuran canvas sesuai dengan gambar
     canvas.width = img.width;
