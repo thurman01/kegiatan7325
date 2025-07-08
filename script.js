@@ -84,8 +84,10 @@ document.getElementById("input-foto").addEventListener("change", function () {
         
         ctx.drawImage(img, 0, 0);
 
-        // Hitung ukuran font berdasarkan lebar gambar (5% dari lebar gambar)
-        const fontSize = Math.floor(img.width * 0.05); 
+        // Tentukan sisi terpendek (lebar atau tinggi) dari gambar
+        const minSide = Math.min(img.width, img.height);
+        // Hitung ukuran font berdasarkan 5% dari sisi terpendek
+        const fontSize = Math.floor(minSide * 0.05);
         ctx.font = `${fontSize}px Arial`;
         ctx.fillStyle = "white";
         ctx.shadowColor = "black"; // Tambahkan bayangan untuk keterbacaan
