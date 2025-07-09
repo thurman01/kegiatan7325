@@ -13,14 +13,15 @@
       <h2>Login</h2>
       <input type="text" id="username" placeholder="Username" />
       <input type="password" id="password" placeholder="Password" />
-      <label><input type="checkbox" id="staySignedIn" /> Stay signed in</label>
+      <label><input type="checkbox" id="staySignedIn" /> Tetap masuk</label>
       <button onclick="login()">Login</button>
     </div>
 
     <div id="form-screen" style="display:none;">
       <h2>Form Monitoring</h2>
       <label>Nama Pegawai:</label>
-      <select id="nama-pegawai"></select> <label>Nama Kegiatan:</label>
+      <select id="nama-pegawai"></select>
+      <label>Nama Kegiatan:</label>
       <input type="text" id="kegiatan" required />
 
       <label>Bidang Pekerjaan:</label>
@@ -32,7 +33,11 @@
       <button onclick="ambilFoto()">Ambil Foto</button>
       <input type="file" accept="image/*" capture="environment" id="input-foto" style="display:none;" />
       <canvas id="canvas-foto" width="300" height="300"></canvas>
-      <button onclick="resetFoto()" id="reset-foto-button" style="display:none;">Reset Foto</button> <button onclick="submitForm()">Submit</button>
+      <button onclick="resetFoto()" id="reset-foto-button" style="display:none;">Reset Foto</button>
+      
+      <label><input type="checkbox" id="downloadPhotoAfterSubmit" /> Download foto setelah submit</label>
+
+      <button onclick="submitForm()">Submit</button>
     </div>
   </div>
 
