@@ -177,6 +177,9 @@ async function submitForm() {
   const kegiatan = document.getElementById("kegiatan").value; // Ambil nilai kegiatan
   const bidangRadio = document.querySelector("input[name='bidang']:checked");
   
+  // Ambil status checkbox unduh foto
+  const shouldDownload = document.getElementById("downloadPhotoAfterSubmit").checked;
+
   if (!namaPegawai) return alert("Pilih nama pegawai!");
   if (!kegiatan) return alert("Isi nama kegiatan!"); // Validasi kegiatan
   if (!bidangRadio) return alert("Pilih bidang pekerjaan!");
@@ -232,6 +235,17 @@ async function submitForm() {
 
     if (hasil.success) {
       alert("Data berhasil dikirim!");
+
+      // Logika unduh foto jika checkbox dicentang
+      if (shouldDownload && base64ImageGlobal) {
+        const a = document.createElement('a');
+        a.href = base64ImageGlobal;
+        a.download = filename; // Gunakan nama file yang sama dengan untuk upload
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
       // Reset form setelah berhasil submit
       document.getElementById("kegiatan").value = "";
       document.getElementById("bidang-lain").value = "";
