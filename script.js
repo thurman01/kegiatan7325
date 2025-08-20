@@ -11,14 +11,30 @@ let globalLatitude = null; // Variabel global untuk latitude
 let globalLongitude = null; // Variabel global untuk longitude
 let takenPhotoTime = null; // Variabel global untuk menyimpan waktu foto diambil (objek Date)
 
+// versi pertama
+// window.onload = () => {
+//   renderBidangOptions();
+//   renderNamaPegawaiOptions(); // Panggil fungsi untuk mengisi dropdown nama pegawai
+//   if (localStorage.getItem("stayLogin") === "true") {
+//     usernameGlobal = localStorage.getItem("username");
+//     showForm();
+//   }
+// };
+
+// versi kedua :
 window.onload = () => {
   renderBidangOptions();
-  renderNamaPegawaiOptions(); // Panggil fungsi untuk mengisi dropdown nama pegawai
+  renderNamaPegawaiOptions();
   if (localStorage.getItem("stayLogin") === "true") {
     usernameGlobal = localStorage.getItem("username");
+    const namaPegawaiSaved = localStorage.getItem("namaPegawai");
+    if (namaPegawaiSaved) {
+      document.getElementById("nama-pegawai").value = namaPegawaiSaved;
+    }
     showForm();
   }
 };
+
 
 function renderBidangOptions() {
   const group = document.getElementById("bidang-group");
@@ -289,4 +305,5 @@ async function submitForm() {
     alert("Terjadi kesalahan saat mengirim data: " + error.message);
   }
 }
+
 
