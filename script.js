@@ -44,18 +44,44 @@ function renderNamaPegawaiOptions() { // Fungsi baru untuk mengisi dropdown nama
   });
 }
 
+
+// versi pertama
+// async function login() {
+//   const user = document.getElementById("username").value;
+//   const pass = document.getElementById("password").value;
+//   // Pastikan URL di bawah ini adalah URL exec dari Google Apps Script Anda
+//   const res = await fetch(`https://script.google.com/macros/s/AKfycbyiMChjTq54ovT7ID7lMZUHp_dOCBDl7DAwGWfF8h_UoT50qwwi20woon1ZU41HGMWotA/exec?mode=login&user=${user}&pass=${pass}`);
+//   const result = await res.json();
+//   if (result.success) {
+//     if (document.getElementById("staySignedIn").checked) {
+//       localStorage.setItem("stayLogin", "true");
+//       localStorage.setItem("username", user);
+//     }
+//     usernameGlobal = user;
+//     showForm();
+//   } else {
+//     alert("Login gagal");
+//   }
+// }
+
+// versi kedua :
 async function login() {
   const user = document.getElementById("username").value;
   const pass = document.getElementById("password").value;
-  // Pastikan URL di bawah ini adalah URL exec dari Google Apps Script Anda
+
   const res = await fetch(`https://script.google.com/macros/s/AKfycbyiMChjTq54ovT7ID7lMZUHp_dOCBDl7DAwGWfF8h_UoT50qwwi20woon1ZU41HGMWotA/exec?mode=login&user=${user}&pass=${pass}`);
   const result = await res.json();
   if (result.success) {
     if (document.getElementById("staySignedIn").checked) {
       localStorage.setItem("stayLogin", "true");
       localStorage.setItem("username", user);
+      localStorage.setItem("namaPegawai", result.namaPegawai); // simpan nama
     }
     usernameGlobal = user;
+
+    // Set dropdown otomatis ke nama pegawai hasil login
+    document.getElementById("nama-pegawai").value = result.namaPegawai;
+
     showForm();
   } else {
     alert("Login gagal");
@@ -263,3 +289,4 @@ async function submitForm() {
     alert("Terjadi kesalahan saat mengirim data: " + error.message);
   }
 }
+
