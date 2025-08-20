@@ -1,10 +1,12 @@
 const bidangOptions = ["UMUM", "IPDS", "SOSIAL", "DISTRIBUSI", "NERACA", "PRODUKSI", "LAINNYA"];
-const namaPegawaiOptions = [ // Array untuk nama pegawai
-  "Fathur Rahman M", "nama2", "nama3", "nama4", "nama5", "nama6", "nama7", "nama8", "nama9", "nama10",
-  "nama11", "nama12", "nama13", "nama14", "nama15", "nama16", "nama17", "nama18", "nama19", "nama20",
-  "nama21", "nama22", "nama23", "nama24", "nama25", "nama26", "nama27", "nama28", "nama29", "nama30",
-  "nama31", "nama32", "nama33", "nama34", "nama35", "nama36"
-];
+
+//const namaPegawaiOptions = [ // Array untuk nama pegawai
+//  "Fathur Rahman M", "nama2", "nama3", "nama4", "nama5", "nama6", "nama7", "nama8", "nama9", "nama10",
+//  "nama11", "nama12", "nama13", "nama14", "nama15", "nama16", "nama17", "nama18", "nama19", "nama20",
+//  "nama21", "nama22", "nama23", "nama24", "nama25", "nama26", "nama27", "nama28", "nama29", "nama30",
+//  "nama31", "nama32", "nama33", "nama34", "nama35", "nama36"
+//];
+
 let usernameGlobal = "";
 let base64ImageGlobal = ""; // hasil foto yg sudah ditempel teks
 let globalLatitude = null; // Variabel global untuk latitude
@@ -24,12 +26,11 @@ let takenPhotoTime = null; // Variabel global untuk menyimpan waktu foto diambil
 // versi kedua :
 window.onload = () => {
   renderBidangOptions();
-  renderNamaPegawaiOptions();
   if (localStorage.getItem("stayLogin") === "true") {
     usernameGlobal = localStorage.getItem("username");
     const namaPegawaiSaved = localStorage.getItem("namaPegawai");
     if (namaPegawaiSaved) {
-      document.getElementById("nama-pegawai").value = namaPegawaiSaved;
+      document.getElementById("nama-pegawai").textContent = namaPegawaiSaved;
     }
     showForm();
   }
@@ -50,15 +51,16 @@ function renderBidangOptions() {
   });
 }
 
-function renderNamaPegawaiOptions() { // Fungsi baru untuk mengisi dropdown nama pegawai
-  const select = document.getElementById("nama-pegawai");
-  namaPegawaiOptions.forEach(name => {
-    const option = document.createElement("option");
-    option.value = name;
-    option.textContent = name;
-    select.appendChild(option);
-  });
-}
+// di hapus di versi pertama
+//function renderNamaPegawaiOptions() { // Fungsi baru untuk mengisi dropdown nama pegawai
+//  const select = document.getElementById("nama-pegawai");
+//  namaPegawaiOptions.forEach(name => {
+//    const option = document.createElement("option");
+//    option.value = name;
+//    option.textContent = name;
+//    select.appendChild(option);
+//  });
+//}
 
 
 // versi pertama
@@ -87,16 +89,17 @@ async function login() {
 
   const res = await fetch(`https://script.google.com/macros/s/AKfycbyiMChjTq54ovT7ID7lMZUHp_dOCBDl7DAwGWfF8h_UoT50qwwi20woon1ZU41HGMWotA/exec?mode=login&user=${user}&pass=${pass}`);
   const result = await res.json();
+
   if (result.success) {
     if (document.getElementById("staySignedIn").checked) {
       localStorage.setItem("stayLogin", "true");
       localStorage.setItem("username", user);
-      localStorage.setItem("namaPegawai", result.namaPegawai); // simpan nama
+      localStorage.setItem("namaPegawai", result.namaPegawai);  // simpan nama
     }
     usernameGlobal = user;
 
-    // Set dropdown otomatis ke nama pegawai hasil login
-    document.getElementById("nama-pegawai").value = result.namaPegawai;
+    // tampilkan nama pegawai
+    document.getElementById("nama-pegawai").textContent = result.namaPegawai;
 
     showForm();
   } else {
@@ -215,7 +218,8 @@ function resetFoto() { // Fungsi untuk mereset foto
 }
 
 async function submitForm() {
-  const namaPegawai = document.getElementById("nama-pegawai").value;
+  //const namaPegawai = document.getElementById("nama-pegawai").value;
+  const namaPegawai = document.getElementById("nama-pegawai").textContent;
   const kegiatan = document.getElementById("kegiatan").value; // Ambil nilai kegiatan
   const bidangRadio = document.querySelector("input[name='bidang']:checked");
   
@@ -315,6 +319,7 @@ function logout() {
   document.getElementById("form-screen").style.display = "none";
   document.getElementById("login-screen").style.display = "block";
 }
+
 
 
 
