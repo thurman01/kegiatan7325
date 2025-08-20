@@ -306,4 +306,16 @@ async function submitForm() {
   }
 }
 
+function logout() {
+  localStorage.removeItem("stayLogin");
+  localStorage.removeItem("username");
+  localStorage.removeItem("namaPegawai");
+  usernameGlobal = "";
+
+  document.getElementById("form-screen").style.display = "none";
+  document.getElementById("login-screen").style.display = "block";
+}
+
+
+
 
