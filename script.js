@@ -148,8 +148,10 @@ document.getElementById("input-foto").addEventListener("change", function () {
         const fontSize = Math.floor(minSide * 0.03); // Sedikit lebih kecil agar muat
         ctx.font = `${fontSize}px Arial`;
         
-        const namaPegawaiTerpilih = document.getElementById("nama-pegawai").value;
-        const namaPegawaiText = `@${namaPegawaiTerpilih}`;
+        //const namaPegawaiTerpilih = document.getElementById("nama-pegawai").value;
+        const namaPegawaiTerpilih = document.getElementById("nama-pegawai").textContent;
+        const namaPegawaiText = `By ${namaPegawaiTerpilih}`;
+        //const namaPegawaiText = document.getElementById("nama-pegawai").textContent;
         const lokasiWatermarkText = `Lokasi: ${globalLatitude.toFixed(5)}, ${globalLongitude.toFixed(5)}`;
         const waktuWatermarkText = `Waktu: ${formattedTakenTime}`;
 
@@ -319,6 +321,7 @@ function logout() {
   document.getElementById("form-screen").style.display = "none";
   document.getElementById("login-screen").style.display = "block";
 }
+
 
 
 
